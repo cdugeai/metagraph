@@ -235,6 +235,10 @@ def writeCollectionsAndCards(session, writerType, writer, skip_archived:bool, da
         max = 0
         for collection in collections:
             cards_metadata = getCollectionMetadata(session, collection['id'])
+            print(cards_metadata)
+            with open("cards_metadata.json", 'w') as f:
+                f.write(str(cards_metadata))
+            boooooooooom
             createCollection = f"CREATE ({sanitize(collection['name'])}{collection['id']}:Collection {{name: '{collection['slug']}', key: 'collection{collection['id']}'}})\n"
             writeTo(writerType, writer, createCollection)
             
@@ -289,8 +293,11 @@ def writeDashboards(session, writerType, writer, skip_archived):
                     continue
                 createDashboard = f"CREATE ({sanitize(dashboard['name'])}{dashboard['id']}:Dashboard {{name: '{sanitize(dashboard['name'])}', key: 'dashboard{dashboard['id']}'}})\n"
                 writeTo(writerType, writer, createDashboard)
+                withDashboard = f"CREATE ({sanitize(dashboard['name'])})\n"
+                writeTo(writerType, writer, withDashboard)
                 dashboard_cards = getDashboardCards(session, dashboard["id"])
-                for card in dashboard_cards:
+                # Keep only last 2 cards
+                for card in dashboard_cards[-2:]:
                     if 'id' in card['card']:
                         matchCardWithDashboard = f"MATCH (a_dashboard:Dashboard {{key: 'dashboard{dashboard['id']}'}}), (a_card:Card {{key: 'card{card['card']['id']}'}})\n"
                     else:

@@ -1,5 +1,14 @@
 FROM python:3.11.4-alpine
 
-COPY . /app/
+WORKDIR /app/rework
 
-RUN pip install -r /app/requirements.txt
+RUN pip3 install pipenv
+COPY rework/Pipfile .
+COPY rework/Pipfile.lock .
+RUN pipenv lock
+RUN pipenv install
+RUN pipenv run pip3 freeze
+# ENTRYPOINT [ "/bin/sh" ]
+
+ENTRYPOINT [ "pipenv", "run", "python3" ]
+CMD [ "rework.py" ]
