@@ -55,7 +55,7 @@ pd.DataFrame([
         ":START_ID(Database-ID)": x['db_id'],
         "some_property": "empty",
         ":END_ID(Table-ID)": x['id'],
-        ":TYPE": "CONTAINS"
+        ":TYPE": "CONTIENT"
     } for x in tables
 ]).to_csv("out/table_relation_db.csv", index=False)
 
@@ -115,7 +115,7 @@ for card_i in cards:
                 ":START_ID(Collection-ID)": card_collection,
                 "some_property": "empty",
                 ":END_ID(Card-ID)": card_id,
-                ":TYPE": "CONTAINS"            
+                ":TYPE": "CONTIENT"            
         })
 
     parents_tables_or_cards='|'.join([str(source_table), joins]).split('|')
@@ -124,18 +124,18 @@ for card_i in cards:
         if parent_element.startswith("card__"):
             parent_card_id=re.findall(r'card__(\d+)', parent_element)[0]
             card_relation_card.append({
-                ":START_ID(Card-ID)": card_id, 
+                ":START_ID(Card-ID)": parent_card_id, 
                 "some_property": "empty", 
-                ":END_ID(Card-ID)": parent_card_id,
-                ":TYPE": "IS_CHILD_OF"
+                ":END_ID(Card-ID)": card_id,
+                ":TYPE": "ALIMENTE"
                 })
         else:
             parent_table_id=parent_element
             card_relation_table.append({
-                ":START_ID(Card-ID)": card_id, 
+                ":START_ID(Table-ID)": parent_table_id, 
                 "some_property": "empty", 
-                ":END_ID(Table-ID)": parent_table_id,
-                ":TYPE": "IS_CHILD_OF"
+                ":END_ID(Card-ID)": card_id,
+                ":TYPE": "ALIMENTE"
             })
 
 pd.DataFrame(cards_content).to_csv("out/cards_content.csv", index=False)
