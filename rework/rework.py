@@ -2,6 +2,8 @@ from metabase_api import Metabase_API
 import pandas as pd
 import re
 import os
+from utils import get_source_table_ids
+import tqdm
 
 url=os.environ.get('MB_URL', '')
 mb = Metabase_API(url, api_key=os.environ.get('MB_API_KEY', ''))
@@ -18,7 +20,7 @@ pd.DataFrame([
         "updated_at": x['updated_at'],
         "created_at": x['created_at']
     } for x in databases
-]).to_csv("out/databases.csv", index=False)
+]).to_csv("out/nodes/databases.csv", index=False)
 
 print('Collections...')
 collections = mb.get("/api/collection/") + mb.get("/api/collection?archived=true")
@@ -32,12 +34,12 @@ pd.DataFrame([
         "location": x.get('location',None),
         "created_at": x.get('created_at',None)
     } for x in collections
-]).to_csv("out/collections.csv", index=False)
+]).to_csv("out/nodes/collections.csv", index=False)
 # with open("out/collections.json", 'w') as f: f.write(json.dumps(collections))
 
 print('Tables...')
 tables = mb.get("/api/table/")
-pd.DataFrame([
+tables_df = pd.DataFrame([
     {
         "tableId:ID(Table-ID)": x['id'],
         ":LABEL": "Table",
@@ -49,7 +51,8 @@ pd.DataFrame([
         "display_name": x['display_name'],
         "created_at": x['created_at']
     } for x in tables
-]).to_csv("out/tables.csv", index=False)
+])
+tables_df.to_csv("out/nodes/tables.csv", index=False)
 pd.DataFrame([
     {
         ":START_ID(Database-ID)": x['db_id'],
@@ -57,7 +60,7 @@ pd.DataFrame([
         ":END_ID(Table-ID)": x['id'],
         ":TYPE": "CONTIENT"
     } for x in tables
-]).to_csv("out/table_relation_db.csv", index=False)
+]).to_csv("out/relations/table_relation_db.csv", index=False)
 
 print('Cards...')
 cards_content=[]
@@ -66,7 +69,7 @@ card_relation_table=[]
 card_relation_collection=[]
 # Archived and non archived cards
 cards=mb.get("/api/card/")+mb.get("/api/card?f=archived")
-for card_i in cards:
+for card_i in tqdm.tqdm(cards):
     card_id=str(card_i['id'])
     # print('Handling card',card_id)
 
@@ -84,6 +87,7 @@ for card_i in cards:
             joins = "|".join([str(z["source-table"]) for z in x['dataset_query']['query'].get('joins', [])])
     elif x['dataset_query']['type']=='native':
         sql_query = x['dataset_query']['native']['query']
+        source_table=get_source_table_ids(sql_query, card_id, tables_df)
 
     card_collection=str((x['collection'] or {'id': "-1"})['id'])
     cards_content.append(
@@ -138,8 +142,8 @@ for card_i in cards:
                 ":TYPE": "ALIMENTE"
             })
 
-pd.DataFrame(cards_content).to_csv("out/cards_content.csv", index=False)
-pd.DataFrame(card_relation_card).to_csv("out/card_relation_card.csv", index=False)
-pd.DataFrame(card_relation_table).to_csv("out/card_relation_table.csv", index=False)
-pd.DataFrame(card_relation_collection).to_csv("out/card_relation_collection.csv", index=False)
+pd.DataFrame(cards_content).to_csv("out/nodes/cards_content.csv", index=False)
+pd.DataFrame(card_relation_card).to_csv("out/relations/card_relation_card.csv", index=False)
+pd.DataFrame(card_relation_table).to_csv("out/relations/card_relation_table.csv", index=False)
+pd.DataFrame(card_relation_collection).to_csv("out/relations/card_relation_collection.csv", index=False)
 print("Done !")

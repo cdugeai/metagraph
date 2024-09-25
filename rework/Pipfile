@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 metabase-api = "*"
 pandas = "*"
+sql-metadata = "*"
+tqdm = "*"
 
 [dev-packages]
 
