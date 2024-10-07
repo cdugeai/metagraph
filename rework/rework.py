@@ -22,6 +22,35 @@ pd.DataFrame([
     } for x in databases
 ]).to_csv("out/nodes/databases.csv", index=False)
 
+
+print('Dashboards...')
+dashboard = mb.get("/api/dashboard/")+mb.get("/api/dashboard?f=archived")
+# with open("out/dashboard.json", 'w') as f: f.write(json.dumps(dashboard))
+pd.DataFrame([
+    {
+        "dashboardId:ID(Dashboard-ID)": x['id'],
+        ":LABEL": "Dashboard",
+        "name": x['name'],
+        # "description": x['description'],
+        "updated_at": x['updated_at'],
+        "created_at": x['created_at'],
+        "archived": x['archived'],
+        "collection_id": x['collection_id'],
+        "creator_id": x['creator_id']
+    } for x in dashboard
+]).to_csv("out/nodes/dashboard.csv", index=False)
+
+
+# Add relation Collection->Dashboard if collection-id exists
+pd.DataFrame([
+    {
+        ":START_ID(Collection-ID)": x['collection_id'],
+        "some_property": "empty",
+        ":END_ID(Dashboard-ID)": x['id'],
+        ":TYPE": "CONTIENT"     
+    } for x in dashboard if x['collection_id'] is not None
+]).to_csv("out/relations/dashboard_relation_collection.csv", index=False)
+
 print('Collections...')
 collections = mb.get("/api/collection/") + mb.get("/api/collection?archived=true")
 pd.DataFrame([
