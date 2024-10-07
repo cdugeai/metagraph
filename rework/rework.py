@@ -1,8 +1,10 @@
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from metabase_api import Metabase_API
 import pandas as pd
 import re
 import os
-from utils import get_source_table_ids
+from utils import async_get_dashboards_relations, get_source_table_ids
 import tqdm
 
 url=os.environ.get('MB_URL', '')
@@ -40,6 +42,10 @@ pd.DataFrame([
     } for x in dashboard
 ]).to_csv("out/nodes/dashboard.csv", index=False)
 
+
+# Relation Dashboard -1-n-> cards
+card_relation_dashboard = asyncio.run(async_get_dashboards_relations(mb, ThreadPoolExecutor(2), [x['id'] for x in dashboard]))
+pd.DataFrame(card_relation_dashboard).to_csv('out/relations/card_relation_dashboard.csv', index=False)
 
 # Add relation Collection->Dashboard if collection-id exists
 pd.DataFrame([

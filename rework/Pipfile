@@ -8,6 +8,8 @@ metabase-api = "*"
 pandas = "*"
 sql-metadata = "*"
 tqdm = "*"
+aiohttp = "*"
+aiodns = "*"
 
 [dev-packages]
 
